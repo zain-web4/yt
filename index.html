@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YT Automation Suite</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Automation Dashboard</p>
+          <h1>YouTube Scan → Download → S3 Upload</h1>
+          <p>
+            Run the full workflow from a single channel or batch Excel file. The
+            system scans metadata, downloads 1080p+ video, applies anti-ban policy,
+            then uploads output to S3.
+          </p>
+        </div>
+        <div class="hero-badge">
+          <span>Pipeline Status</span>
+          <strong id="pipeline-status">Idle</strong>
+        </div>
+      </header>
+
+      <main class="grid">
+        <section class="panel panel-wide">
+          <h2>1) Input Source</h2>
+          <p class="panel-note">Pick one source: single channel or Excel batch.</p>
+          <form id="source-form">
+            <div class="radio-row">
+              <label>
+                <input type="radio" name="source-mode" value="single" checked />
+                Single Channel
+              </label>
+              <label>
+                <input type="radio" name="source-mode" value="excel" />
+                Excel (.xlsx/.xls)
+              </label>
+            </div>
+
+            <div id="single-source-fields" class="source-fields active">
+              <label>
+                Channel URL / Handle
+                <input id="single-channel" type="text" placeholder="https://www.youtube.com/@channel" />
+              </label>
+            </div>
+
+            <div id="excel-source-fields" class="source-fields">
+              <label>
+                Excel File
+                <input id="excel-file" type="file" accept=".xlsx,.xls" />
+              </label>
+              <p class="hint">
+                Required columns in first sheet: <code>channel</code>. Optional:
+                <code>proxy</code>, <code>quality</code>, <code>s3Prefix</code>.
+              </p>
+            </div>
+          </form>
+          <pre id="source-result" class="output">No source selected.</pre>
+        </section>
+
+        <section class="panel">
+          <h2>2) Scan Options</h2>
+          <form id="scan-form">
+            <div class="radio-row">
+              <label>
+                <input type="radio" name="scan-mode" value="proxy" checked />
+                Use Proxy
+              </label>
+              <label>
+                <input type="radio" name="scan-mode" value="direct" />
+                Without Proxy
+              </label>
+            </div>
+
+            <label>
+              Default Proxy URL (optional)
+              <input id="proxy" type="text" placeholder="http://user:pass@ip:port" />
+            </label>
+          </form>
+          <pre id="scan-result" class="output">Scanner configuration ready.</pre>
+        </section>
+
+        <section class="panel">
+          <h2>3) Download Settings</h2>
+          <form id="download-form">
+            <label>
+              Minimum Quality
+              <select id="quality">
+                <option value="1080">1080p</option>
+                <option value="1440">1440p</option>
+                <option value="2160">4K</option>
+              </select>
+            </label>
+
+            <label>
+              Max Concurrent Downloads
+              <input id="concurrency" type="number" min="1" max="8" value="2" />
+            </label>
+          </form>
+          <pre id="download-result" class="output">Download profile: 1080p+, concurrency 2.</pre>
+        </section>
+
+        <section class="panel">
+          <h2>4) Anti-Ban Protection</h2>
+          <form id="protection-form">
+            <label class="switch-row">
+              <input id="rotate-ip" type="checkbox" checked />
+              <span>Proxy rotation per request</span>
+            </label>
+
+            <label class="switch-row">
+              <input id="jitter" type="checkbox" checked />
+              <span>Random request jitter (2–10s)</span>
+            </label>
+
+            <label class="switch-row">
+              <input id="ua-pool" type="checkbox" checked />
+              <span>Rotate user-agent headers</span>
+            </label>
+          </form>
+          <pre id="protection-result" class="output">Protection profile: safe mode.</pre>
+        </section>
+
+        <section class="panel">
+          <h2>5) S3 Upload</h2>
+          <form id="s3-form">
+            <label>
+              Bucket Name
+              <input id="bucket" type="text" placeholder="my-media-bucket" required />
+            </label>
+
+            <label>
+              Region
+              <input id="region" type="text" placeholder="us-east-1" required />
+            </label>
+
+            <label>
+              Default Prefix
+              <input id="prefix" type="text" placeholder="yt-downloads/" />
+            </label>
+          </form>
+          <pre id="s3-result" class="output">S3 uploader is ready.</pre>
+        </section>
+
+        <section class="panel panel-wide">
+          <h2>6) Run Full Automation</h2>
+          <div class="actions">
+            <button id="preview-btn" type="button">Preview Job Plan</button>
+            <button id="run-btn" type="button">Run End-to-End Pipeline</button>
+          </div>
+          <pre id="plan-result" class="output">No job plan created.</pre>
+          <pre id="run-result" class="output">Pipeline has not started.</pre>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
